@@ -1,22 +1,12 @@
-"""Memory, puzzle game of number pairs.
-
-Exercises:
-
-1. Count and print how many taps occur.
-2. Decrease the number of tiles to a 4x4 grid.
-3. Detect when all tiles are revealed.
-4. Center single-digit tile.
-5. Use letters instead of tiles.
-"""
+"""Memory, puzzle game of number pairs."""
 
 from random import *
 from turtle import *
-
 from freegames import path
 
 car = path('car.gif')
 tiles = list(range(32)) * 2
-state = {'mark': None, 'taps': 0}
+state = {'marks': [], 'taps': 0}
 hide = [True] * 64
 
 
@@ -44,21 +34,27 @@ def xy(count):
 
 
 def tap(x, y):
-    """Update mark and hidden tiles based on tap."""
+    """Update marks and hidden tiles based on tap."""
     spot = index(x, y)
     state['taps'] += 1
-    mark = state['mark']
+    marks = state['marks']
 
-    if mark is None or mark == spot or tiles[mark] != tiles[spot]:
-        state['mark'] = spot
-    else:
-        hide[spot] = False
-        hide[mark] = False
-        state['mark'] = None
+    if spot in marks or not hide[spot]:
+        return
+
+    marks.append(spot)
+
+    if len(marks) == 2:
+        if tiles[marks[0]] == tiles[marks[1]]:
+            hide[marks[0]] = False
+            hide[marks[1]] = False
+            state['marks'] = []
+    elif len(marks) == 3:
+        state['marks'] = [marks[2]]
 
 
 def draw():
-    "Draw image, tiles, taps count, and winning message."
+    """Draw image, tiles, taps count, and winning message."""
     clear()
     goto(0, 0)
     shape(car)
@@ -69,14 +65,13 @@ def draw():
             x, y = xy(count)
             square(x, y)
 
-    mark = state['mark']
-
-    if mark is not None and hide[mark]:
-        x, y = xy(mark)
-        up()
-        goto(x + 2, y)
-        color('black')
-        write(tiles[mark], font=('Arial', 30, 'normal'))
+    for mark in state['marks']:
+        if hide[mark]:
+            x, y = xy(mark)
+            up()
+            goto(x + 25, y)
+            color('black')
+            write(tiles[mark], align='center', font=('Arial', 30, 'normal'))
 
     up()
     goto(-200, 200)
